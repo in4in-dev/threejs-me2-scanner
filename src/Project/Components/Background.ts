@@ -106,7 +106,7 @@ export default class Background extends Component
 
 	}
 
-	public animate(mouseX : number, mouseY : number, winW : number, winH : number){
+	public animate(){
 
 		this.points.rotation.y += 0.001;
 

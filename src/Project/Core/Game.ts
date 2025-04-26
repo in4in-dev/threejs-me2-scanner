@@ -274,7 +274,7 @@ export default class Game extends Engine
 		});
 
 		this.analyzeWrap('BACKGROUND ANIMATE', () => {
-			this.background.animate(this.mousePositionX, this.mousePositionY, this.width, this.height);
+			this.background.animate();
 		});
 
 		this.analyzeWrap('PROBES ANIMATE', () => {
