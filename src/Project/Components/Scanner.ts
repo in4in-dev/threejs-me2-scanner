@@ -89,7 +89,9 @@ export default class Scanner extends Component
 	public mine() : Gem[]
 	{
 
-		this.spawnFlag(this.cursor.position);
+		this.spawnFlag(
+			this.cursor.position.clone()
+		);
 
 		this.cursor.blick();
 

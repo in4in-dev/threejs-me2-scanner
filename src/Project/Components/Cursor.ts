@@ -160,7 +160,7 @@ export default class Cursor extends Component{
 
 		if(this.blickProgress < 1){
 			this.blickProgress += 0.02;
-			this.blickMesh.scale.set(1 + 12 * this.blickProgress, 1 + 12 * this.blickProgress, 1 + 12 * this.blickProgress);
+			// this.blickMesh.scale.set(1 + 12 * this.blickProgress, 1 + 12 * this.blickProgress, 1 + 12 * this.blickProgress);
 		}else{
 			this.blickMesh.scale.set(0, 0, 0);
 		}
