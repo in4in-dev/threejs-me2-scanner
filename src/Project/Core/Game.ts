@@ -116,8 +116,7 @@ export default class Game extends Engine
 
 					this.scanner.moveCursor(
 						event.movementX,
-						event.movementY,
-						this.camera
+						event.movementY
 					);
 
 				}
@@ -178,6 +177,7 @@ export default class Game extends Engine
 
 			});
 
+		}, () => {
 
 			this.planetRotateAllow = true;
 			this.cursorMovingAllow = true;
@@ -246,10 +246,10 @@ export default class Game extends Engine
 
 		if(this.showTimeCodes){
 			console.log('Время выполнения '  + code + ': ' + time + ' мс');
+		}
 
-			if(time > max){
-				console.log('%c Долгое выполнение ' + code + ': ' + time + ' мс', 'color: orange');
-			}
+		if(time > max){
+			console.log('%c Долгое выполнение ' + code + ': ' + time + ' мс', 'color: orange');
 		}
 
 

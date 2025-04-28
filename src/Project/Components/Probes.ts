@@ -16,7 +16,7 @@ export default class Probes extends Component
 		this.camera = camera;
 	}
 
-	public launch(to : Vector3, cb : () => void){
+	public launch(to : Vector3, landedCallback : () => void, destroyedCallback : () => void = () => {}){
 
 		let offset = new THREE.Vector3(
 			(Math.random() > 0.5 ? 1 : -1) * 1.5,
@@ -26,7 +26,7 @@ export default class Probes extends Component
 
 		let from = this.camera.localToWorld(offset);
 
-		let probe = new Probe(from, to, cb);
+		let probe = new Probe(from, to, landedCallback, destroyedCallback);
 
 		this.probes.push(probe);
 

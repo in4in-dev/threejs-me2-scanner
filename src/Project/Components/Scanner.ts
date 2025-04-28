@@ -89,13 +89,13 @@ export default class Scanner extends Component
 
 	}
 
-	public launchProbe(cb : () => void) : void
+	public launchProbe(cb : () => void, destroyCb: () => void) : void
 	{
 		let position = new Vector3();
 
 		this.cursor.getWorldPosition(position);
 
-		this.probes.launch(position, cb);
+		this.probes.launch(position, cb, destroyCb);
 	}
 
 	public mine() : Gem[]
@@ -114,7 +114,7 @@ export default class Scanner extends Component
 
 	}
 
-	public moveCursor(addX : number, addY : number, camera : THREE.Camera) : void
+	public moveCursor(addX : number, addY : number) : void
 	{
 
 		addX *= 0.0015;
@@ -125,9 +125,9 @@ export default class Scanner extends Component
 
 		let normal = this.cursor.position.clone().normalize();
 		let up = new THREE.Vector3(0, 1, 0).projectOnPlane(normal).normalize();
-		let right = new THREE.Vector3(1, 0, 0).projectOnPlane(normal).normalize();
+		// let right = new THREE.Vector3(1, 0, 0).projectOnPlane(normal).normalize();
 
-		right = up.clone().cross(normal).normalize();
+		let right = up.clone().cross(normal).normalize();
 
 		let newPoint = normal
 			.clone()
@@ -182,8 +182,6 @@ export default class Scanner extends Component
 			this.cursor.position.applyQuaternion(rotation);
 
 		}
-
-		console.log(this.cursor.position)
 
 	}
 
