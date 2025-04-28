@@ -24,7 +24,7 @@ export default class Scanner extends Component
 	public cursor : Cursor;
 	public monitor : Monitor;
 
-	protected cursorMousePosition : Vector2;
+	protected camera : THREE.Camera;
 	protected flags : FlagData[] = [];
 
 	protected monitorThrottler : AnimationThrottler = Animation.createThrottler(50);
@@ -33,10 +33,10 @@ export default class Scanner extends Component
 		super();
 
 		this.planet = planet;
+		this.camera = camera;
 		this.cursor = this.createCursor();
 		this.probes = new Probes(camera);
 		this.monitor = this.createMonitor();
-		this.cursorMousePosition = new Vector2(0, 0);
 
 		this.planet.add(this.cursor);
 
@@ -61,7 +61,7 @@ export default class Scanner extends Component
 		let monitor = new Monitor();
 
 		monitor.position.set(2, 0, 0);
-		monitor.rotation.set(0.5, -0.5, 0.25);
+		// monitor.rotation.set(0.5, -0.5, 0.25);
 
 		return monitor;
 	}
@@ -114,6 +114,32 @@ export default class Scanner extends Component
 
 	}
 
+	private angleToThePoint(target : Vector3) : number
+	{
+
+		let direction = new THREE.Vector3();
+		this.camera.getWorldDirection(direction);
+
+		let sphereCenter = this.planet.position.clone();
+		let radius = this.planet.radius;
+
+		let inverseMatrix = new THREE.Matrix4().extractRotation(this.planet.matrixWorld).invert();
+		let correctedDirection = direction.clone().applyMatrix4(inverseMatrix);
+
+		let pointOnSphere = sphereCenter.clone().add(correctedDirection.normalize().multiplyScalar(radius));
+		let angle = target.clone().normalize().angleTo(pointOnSphere.clone().normalize());
+
+		let centerNormal = pointOnSphere.clone().normalize();
+		let cursorNormal = this.cursor.position.clone().normalize();
+
+		let cross = centerNormal.clone().cross(cursorNormal);
+
+		let side = Math.sign(cross.dot(this.camera.up));
+
+		return side > 0 ? angle : -angle;
+
+	}
+
 	public moveCursor(addX : number, addY : number) : void
 	{
 
@@ -135,51 +161,37 @@ export default class Scanner extends Component
 			.applyAxisAngle(up, -rightOffset)
 			.multiplyScalar(this.planet.radius);
 
+		let angle = this.angleToThePoint(newPoint);
 
+		if(Math.abs(angle) >= 2.25){
 
-		this.cursor.position.copy(newPoint);
+			this.cursor.position.copy(newPoint);
 
-		this.cursor.lookAt(this.planet.position);
+			this.cursor.lookAt(this.planet.position);
+
+		}
 
 
 	}
 
-	public rotatePlanetToCamera(camera : THREE.Camera) : void
+	public rotatePlanetToCamera() : void
 	{
 
-		let direction = new THREE.Vector3();
-		camera.getWorldDirection(direction);
+		let angle = this.angleToThePoint(this.cursor.position);
 
-		let sphereCenter = this.planet.position.clone();
-		let radius = this.planet.radius;
+		if(Math.abs(angle) < 2.35){
 
-		let inverseMatrix = new THREE.Matrix4().extractRotation(this.planet.matrixWorld).invert();
-		let correctedDirection = direction.clone().applyMatrix4(inverseMatrix);
-
-		let pointOnSphere = sphereCenter.clone().add(correctedDirection.normalize().multiplyScalar(radius));
-		let angle = this.cursor.position.clone().normalize().angleTo(pointOnSphere.clone().normalize());
-
-		let centerNormal = pointOnSphere.clone().normalize();
-		let cursorNormal = this.cursor.position.clone().normalize();
-
-		// Векторное произведение — дает "направление отклонения"
-		let cross = centerNormal.clone().cross(cursorNormal);
-
-		// Теперь по знаку dot'а с up-вектором (например, ось Y камеры)
-		let side = Math.sign(cross.dot(camera.up));
-
-		if(angle < 2.35){
-
-			if(side > 0){
+			if(angle > 0){
 				this.planet.rotation.y += 0.01;
 			}else{
 				this.planet.rotation.y -= 0.01;
 			}
 
 			let rotation = new THREE.Quaternion();
-			rotation.setFromAxisAngle(new THREE.Vector3(0, 1, 0), side > 0 ? -0.01 : 0.01);
+			rotation.setFromAxisAngle(new THREE.Vector3(0, 1, 0), angle > 0 ? -0.01 : 0.01);
 
 			this.cursor.position.applyQuaternion(rotation);
+			this.cursor.lookAt(this.planet.position);
 
 		}
 

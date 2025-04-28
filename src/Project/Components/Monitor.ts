@@ -1,7 +1,7 @@
 import Component from "../Core/Component";
 import * as THREE from 'three';
 import {Gem} from "./Planet";
-import {LineBasicMaterial} from "three";
+import {LineBasicMaterial, Vector3} from "three";
 
 interface MonitorLine
 {
@@ -20,13 +20,89 @@ interface GemsValues{
 export default class Monitor extends Component
 {
 
+	protected body : THREE.Group;
+	protected background : THREE.Group;
+
 	protected lines : MonitorLine[] = [];
 	protected lastChartPoints : number[] = [];
 
 	public constructor() {
+
 		super();
 
+		this.body = this.createBody();
+		this.background = this.createBackground();
 
+		this.add(this.body, this.background);
+
+
+	}
+
+	private createBody() : THREE.Group
+	{
+		let group = new THREE.Group();
+
+		group.rotation.set(0.5, -0.5, 0.25);
+
+		return group;
+	}
+
+
+	private createBackground() : THREE.Group
+	{
+
+		let background = new THREE.Group();
+
+		function createLine(start : Vector3, end : Vector3){
+
+			let dir = new THREE.Vector3().subVectors(end, start);
+			let length = dir.length();
+			let angle = Math.atan2(dir.y, dir.x);
+
+			let geometry = new THREE.PlaneGeometry(length, 0.005);
+			let material = new THREE.MeshBasicMaterial({
+				color: 0x00ff00,
+				side: THREE.DoubleSide,
+				opacity : 0.3,
+				transparent : true,
+			});
+			let rect = new THREE.Mesh(geometry, material);
+
+			rect.position.copy(start).add(dir.clone().multiplyScalar(0.5));
+			rect.rotation.z = angle;
+
+			return rect;
+
+		}
+
+		for(let i = 0; i < 1; i+=0.2){
+			background.add(
+				createLine(
+					new Vector3(i, 0, 0),
+					new Vector3(i, 1.2, 0),
+				),
+				createLine(
+					new Vector3(i + 0.15, 0, 0),
+					new Vector3(i + 0.15, 1.2, 0),
+				)
+			)
+
+			for(let b = 0; b < 1.3; b+=0.15){
+
+				background.add(
+					createLine(
+						new Vector3(i, b, 0),
+						new Vector3(i + 0.15, b, 0),
+					)
+				);
+
+			}
+
+		}
+
+		background.rotation.set(-1,-0.3,-0.45);
+
+		return background;
 
 
 	}
@@ -194,13 +270,13 @@ export default class Monitor extends Component
 		let newLine = this.createMonitorLine(points);
 
 		this.lines.push(newLine);
-		this.add(newLine.line);
+		this.body.add(newLine.line);
 
 		if(this.lines.length > 20){
 
 			let firstLine = this.lines.shift();
 
-			this.remove(firstLine!.line);
+			this.body.remove(firstLine!.line);
 
 		}
 

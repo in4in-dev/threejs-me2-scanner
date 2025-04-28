@@ -280,7 +280,7 @@ export default class Game extends Engine
 		this.analyzeWrap('SCANNER_MOVEMENT', () => {
 
 			if(this.planetRotateAllow){
-				this.scanner.rotatePlanetToCamera(this.camera);
+				this.scanner.rotatePlanetToCamera();
 			}
 
 		});
