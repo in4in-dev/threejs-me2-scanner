@@ -9,7 +9,7 @@ export default class Probe extends Component
 	public landed : boolean = false;
 
 	protected progress : number = 0;
-	protected tailLength : number = 30;
+	protected tailLength : number = 120;
 	protected tailPoints : THREE.Vector3[] = [];
 	protected tailCurve : THREE.QuadraticBezierCurve3;
 
@@ -22,8 +22,16 @@ export default class Probe extends Component
 
 		super();
 
-		let mid = from.clone().lerp(to, 0.5);
-		mid.y += 2;
+		// let mid = from.clone().lerp(to, 0.5);
+		// mid.y += 2;
+
+		let mid = to.clone();
+
+		if(from.x < 0){
+			mid.x += 1;
+		}else{
+			mid.x = -1;
+		}
 
 		this.tailCurve = new THREE.QuadraticBezierCurve3(from, mid, to);
 
@@ -43,7 +51,7 @@ export default class Probe extends Component
 		if (!this.landed){
 
 			// движение по кривой
-			this.progress += 0.005;
+			this.progress += 0.003;
 
 			if (this.progress >= 1) {
 				this.progress = 1;
@@ -97,7 +105,7 @@ export default class Probe extends Component
 			let material = new THREE.LineBasicMaterial({
 				color: 0xffffff,
 				transparent: true,
-				opacity: opacity,
+				opacity: opacity
 			});
 
 			let segment = new THREE.Line(geometry, material);

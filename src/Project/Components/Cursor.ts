@@ -123,10 +123,10 @@ export default class Cursor extends Component{
 		let group = new THREE.Group();
 
 		group.add(
-			this.createCircle(radius * 0.2, 0.005, '#32b66b'),
-			this.createCircle(radius * 0.5, 0.005, '#32b66b'),
-			this.createCircle(radius * 0.7, 0.005, '#32b66b'),
-			this.createCircle(radius, 0.01, '#d22c34'),
+			this.createCircle(radius * 0.2, 0.001, '#32b66b'),
+			this.createCircle(radius * 0.5, 0.001, '#32b66b'),
+			this.createCircle(radius * 0.7, 0.001, '#32b66b'),
+			this.createCircle(radius, 0.005, '#d22c34'),
 			// this.createLine(
 			// 	new Vector3(-radius * 0.7, 0, 0),
 			// 	new Vector3(radius * 0.7, 0, 0),
