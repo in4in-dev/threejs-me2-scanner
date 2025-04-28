@@ -16,10 +16,6 @@ export default class Game extends Engine
 	protected planetRotateAllow : boolean = true;
 	protected probeLaunchAllow : boolean = true;
 
-	//Позиция мыши
-	protected mousePositionX : number = 0;
-	protected mousePositionY : number = 0;
-
 	//Настройки для отладки
 	protected showAxis : boolean = false;
 	protected showTimeCodes : boolean = false;
@@ -108,30 +104,54 @@ export default class Game extends Engine
 	 */
 	protected initListeners(){
 
-		window.addEventListener('mousedown', (event) => {
+		document.body.addEventListener('click', () => {
+			document.body.requestPointerLock();
+		});
 
-			this.mousePositionX = event.clientX;
-			this.mousePositionY = event.clientY;
+		document.addEventListener('pointerlockchange', () => {
 
-			if(this.probeLaunchAllow && (<HTMLElement>event.target).tagName !== 'BUTTON'){
+			let onMouseMove = (event : MouseEvent) => {
 
-				this.launchProbe();
+				if(this.cursorMovingAllow){
+
+					this.scanner.moveCursor(
+						event.movementX,
+						event.movementY,
+						this.camera
+					);
+
+				}
+
+			};
+
+			let onMouseDown = (event : MouseEvent) => {
+
+
+				if((<HTMLElement>event.target).tagName !== 'BUTTON'){
+
+					event.preventDefault();
+
+					if(this.probeLaunchAllow){
+						this.launchProbe();
+					}
+
+				}
 
 			}
 
-		});
+			let onMouseUp = (event : MouseEvent) => {
 
-		window.addEventListener('mousemove', (event) => {
+			}
 
-			this.mousePositionX = event.clientX;
-			this.mousePositionY = event.clientY;
-
-		});
-
-		window.addEventListener('mouseup', (event) => {
-
-			this.mousePositionX = event.clientX;
-			this.mousePositionY = event.clientY;
+			if (document.pointerLockElement === document.body) {
+				document.addEventListener('mousedown', onMouseDown);
+				document.addEventListener('mousemove', onMouseMove);
+				document.addEventListener('mouseup', onMouseUp);
+			} else {
+				document.removeEventListener('mouseup', onMouseUp);
+				document.removeEventListener('mousemove', onMouseMove);
+				document.removeEventListener('mousedown', onMouseDown);
+			}
 
 		});
 
@@ -258,10 +278,6 @@ export default class Game extends Engine
 
 
 		this.analyzeWrap('SCANNER_MOVEMENT', () => {
-
-			if(this.cursorMovingAllow){
-				this.scanner.moveCursorTo(this.mousePositionX, this.mousePositionY, this.camera);
-			}
 
 			if(this.planetRotateAllow){
 				this.scanner.rotatePlanetToCamera(this.camera);

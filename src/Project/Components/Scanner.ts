@@ -33,7 +33,7 @@ export default class Scanner extends Component
 		super();
 
 		this.planet = planet;
-		this.cursor = new Cursor(0.15);
+		this.cursor = this.createCursor();
 		this.probes = new Probes(camera);
 		this.monitor = this.createMonitor();
 		this.cursorMousePosition = new Vector2(0, 0);
@@ -41,6 +41,18 @@ export default class Scanner extends Component
 		this.planet.add(this.cursor);
 
 		this.add(this.planet, this.monitor);
+
+	}
+
+	protected createCursor() : Cursor
+	{
+
+		let cursor = new Cursor(0.15);
+
+		cursor.position.set(0, 0, 1);
+		cursor.lookAt(this.planet.position);
+
+		return cursor;
 
 	}
 
@@ -102,75 +114,76 @@ export default class Scanner extends Component
 
 	}
 
-	public moveCursorTo(mouseX : number, mouseY : number, camera : THREE.Camera) : void
+	public moveCursor(addX : number, addY : number, camera : THREE.Camera) : void
 	{
 
-		let x = (mouseX / window.innerWidth) * 2 - 1;
-		let y = -(mouseY / window.innerHeight) * 2 + 1;
+		addX *= 0.0015;
+		addY *= 0.0015;
 
-		let raycaster = new THREE.Raycaster();
-		let mouse = new THREE.Vector2(x, y);
+		let upOffset = addY / this.planet.radius;
+		let rightOffset = -addX / this.planet.radius;
 
-		raycaster.setFromCamera(mouse, camera);
+		let normal = this.cursor.position.clone().normalize();
+		let up = new THREE.Vector3(0, 1, 0).projectOnPlane(normal).normalize();
+		let right = new THREE.Vector3(1, 0, 0).projectOnPlane(normal).normalize();
 
-		let intersects = raycaster.intersectObject(this.planet);
+		right = up.clone().cross(normal).normalize();
 
-		if (intersects.length > 0) {
+		let newPoint = normal
+			.clone()
+			.applyAxisAngle(right, upOffset)
+			.applyAxisAngle(up, -rightOffset)
+			.multiplyScalar(this.planet.radius);
 
-			let point = intersects[0].point.clone().normalize().multiplyScalar(this.planet.radius + 0.001);
 
-			this.cursor.position.copy(
-				this.planet.worldToLocal(point)
-			);
 
-			this.cursor.lookAt(this.planet.position);
+		this.cursor.position.copy(newPoint);
 
-		}
+		this.cursor.lookAt(this.planet.position);
 
-		this.cursorMousePosition = new Vector2(x, y);
 
 	}
 
 	public rotatePlanetToCamera(camera : THREE.Camera) : void
 	{
 
-		let raycaster = new THREE.Raycaster();
+		let direction = new THREE.Vector3();
+		camera.getWorldDirection(direction);
 
-		let cameraDir = new THREE.Vector3();
+		let sphereCenter = this.planet.position.clone();
+		let radius = this.planet.radius;
 
-		camera.getWorldDirection(cameraDir);
+		let inverseMatrix = new THREE.Matrix4().extractRotation(this.planet.matrixWorld).invert();
+		let correctedDirection = direction.clone().applyMatrix4(inverseMatrix);
 
-		raycaster.setFromCamera(this.cursorMousePosition, camera);
+		let pointOnSphere = sphereCenter.clone().add(correctedDirection.normalize().multiplyScalar(radius));
+		let angle = this.cursor.position.clone().normalize().angleTo(pointOnSphere.clone().normalize());
 
-		let intersects = raycaster.intersectObject(this.planet);
+		let centerNormal = pointOnSphere.clone().normalize();
+		let cursorNormal = this.cursor.position.clone().normalize();
 
-		if (intersects.length > 0) {
+		// Векторное произведение — дает "направление отклонения"
+		let cross = centerNormal.clone().cross(cursorNormal);
 
-			let hit = intersects[0].point.clone().normalize();
+		// Теперь по знаку dot'а с up-вектором (например, ось Y камеры)
+		let side = Math.sign(cross.dot(camera.up));
 
-			// Угол между камерой и точкой
-			const angleDeg = THREE.MathUtils.radToDeg(cameraDir.angleTo(hit));
+		if(angle < 2.35){
 
-			// Угол только в XZ-плоскости
-			const cameraXZ = cameraDir.clone().setY(0).normalize();
-			const hitXZ = hit.clone().setY(0).normalize();
-			const angleXZ = THREE.MathUtils.radToDeg(cameraXZ.angleTo(hitXZ));
-
-			if (angleDeg < 140 && angleXZ < 140) {
-
-				const cross = new THREE.Vector3().crossVectors(cameraXZ, hitXZ);
-
-				if(cross.y > 0){
-					this.planet.rotation.y += 0.01;
-				}else{
-					this.planet.rotation.y -= 0.01;
-				}
-
-
+			if(side > 0){
+				this.planet.rotation.y += 0.01;
+			}else{
+				this.planet.rotation.y -= 0.01;
 			}
+
+			let rotation = new THREE.Quaternion();
+			rotation.setFromAxisAngle(new THREE.Vector3(0, 1, 0), side > 0 ? -0.01 : 0.01);
+
+			this.cursor.position.applyQuaternion(rotation);
+
 		}
 
-
+		console.log(this.cursor.position)
 
 	}
 
