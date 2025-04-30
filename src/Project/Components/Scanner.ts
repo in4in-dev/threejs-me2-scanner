@@ -211,10 +211,14 @@ export default class Scanner extends Component
 
 		});
 
-		this.flags.filter(flag => flag.progress < 1).forEach(flag => {
+		this.flags.forEach(flag => {
 
-			flag.progress += 0.03;
-			flag.flag.position.lerpVectors(flag.from, flag.to, flag.progress);
+			if(flag.progress < 1) {
+				flag.progress += 0.01;
+				flag.flag.position.lerpVectors(flag.from, flag.to, flag.progress);
+			}
+
+			flag.flag.animate();
 
 		});
 
