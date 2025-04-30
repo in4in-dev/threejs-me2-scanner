@@ -31,6 +31,8 @@ export default class Game extends Engine
 	protected techInfoIndicator : TechInfoHtmlViewer;
 	protected gemsIndicator : GemsHtmlViewer;
 
+	protected audioContext : AudioContext;
+
 	constructor() {
 
 		super(document.body);
@@ -47,7 +49,10 @@ export default class Game extends Engine
 
 
 		/////
-		this.background = new Background('../../../assets/space_texture.png');
+		this.audioContext = new AudioContext();
+
+		/////
+		this.background = new Background('../../../assets/space_texture.png', 0.3, this.audioContext);
 
 		this.scanner = this.createScanner();
 		this.light = this.createLight();
@@ -82,7 +87,8 @@ export default class Game extends Engine
 				1,
 				Random.arr(planetTextures),
 				100
-			)
+			),
+			this.audioContext
 		);
 
 
@@ -106,6 +112,8 @@ export default class Game extends Engine
 
 		document.body.addEventListener('click', () => {
 			document.body.requestPointerLock();
+
+			this.audioContext.resume();
 		});
 
 		document.addEventListener('pointerlockchange', () => {

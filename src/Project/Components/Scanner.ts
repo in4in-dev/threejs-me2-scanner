@@ -3,10 +3,11 @@ import Planet, {Gem} from "./Planet";
 import Cursor from "./Cursor";
 import Monitor from "./Monitor";
 import * as THREE from 'three';
-import {Camera, Vector2, Vector3} from "three";
+import {AudioContext, Camera, Vector2, Vector3} from "three";
 import {Animation, AnimationThrottler} from "../../Three/Animation";
 import Flag from "./Flag";
 import Probes from "./Probes";
+import Sound from "../../Three/Sound";
 
 interface FlagData
 {
@@ -29,14 +30,14 @@ export default class Scanner extends Component
 
 	protected monitorThrottler : AnimationThrottler = Animation.createThrottler(50);
 
-	public constructor(camera : THREE.Camera, planet : Planet) {
+	public constructor(camera : THREE.Camera, planet : Planet, audioContext : AudioContext) {
 		super();
 
 		this.planet = planet;
 		this.camera = camera;
 		this.cursor = this.createCursor();
-		this.probes = new Probes(camera);
-		this.monitor = this.createMonitor();
+		this.probes = new Probes(camera, audioContext);
+		this.monitor = this.createMonitor(audioContext);
 
 		this.planet.add(this.cursor);
 
@@ -56,9 +57,9 @@ export default class Scanner extends Component
 
 	}
 
-	protected createMonitor() : Monitor
+	protected createMonitor(audioContext : AudioContext) : Monitor
 	{
-		let monitor = new Monitor();
+		let monitor = new Monitor(audioContext);
 
 		monitor.position.set(2, 0, 0);
 		// monitor.rotation.set(0.5, -0.5, 0.25);

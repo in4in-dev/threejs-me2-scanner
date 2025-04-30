@@ -1,7 +1,8 @@
 import Component from "../Core/Component";
 import * as THREE from 'three';
 import {Gem} from "./Planet";
-import {LineBasicMaterial, Vector3} from "three";
+import {AudioContext, LineBasicMaterial, Vector3} from "three";
+import Sound from "../../Three/Sound";
 
 interface MonitorLine
 {
@@ -26,7 +27,12 @@ export default class Monitor extends Component
 	protected lines : MonitorLine[] = [];
 	protected lastChartPoints : number[] = [];
 
-	public constructor() {
+	protected soundIridium : Sound;
+	protected soundPlatinum : Sound;
+	protected soundPalladium : Sound;
+	protected soundZero : Sound;
+
+	public constructor(audioContext : AudioContext) {
 
 		super();
 
@@ -34,6 +40,30 @@ export default class Monitor extends Component
 		this.background = this.createBackground();
 
 		this.add(this.body, this.background);
+
+		this.soundIridium = new Sound(audioContext);
+		this.soundIridium
+			.setLoop(true)
+			.setVolume(0)
+			.loadFromFile('/assets/music/iridium.wav', true);
+
+		this.soundPlatinum = new Sound(audioContext);
+		this.soundPlatinum
+			.setLoop(true)
+			.setVolume(0)
+			.loadFromFile('/assets/music/platinum.wav', true);
+
+		this.soundPalladium = new Sound(audioContext);
+		this.soundPalladium
+			.setLoop(true)
+			.setVolume(0)
+			.loadFromFile('/assets/music/palladium.wav', true);
+
+		this.soundZero = new Sound(audioContext);
+		this.soundZero
+			.setLoop(true)
+			.setVolume(0)
+			.loadFromFile('/assets/music/zero-element.wav', true);
 
 
 	}
@@ -243,6 +273,22 @@ export default class Monitor extends Component
 	public animate(gems : Gem[]){
 
 		let values = this.gemsToValues(gems);
+
+		this.soundZero.setVolume(
+			Math.min(values.zero / 2, 1)
+		);
+
+		this.soundPalladium.setVolume(
+			Math.min(values.palladium / 2, 1)
+		);
+
+		this.soundIridium.setVolume(
+			Math.min(values.iridium / 2, 1)
+		);
+
+		this.soundPlatinum.setVolume(
+			Math.min(values.platinum / 2, 1)
+		);
 
 		let points = this.optimizeChartPoints(
 			this.generateChartPoints(values)

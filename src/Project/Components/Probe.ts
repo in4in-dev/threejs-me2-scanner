@@ -96,34 +96,53 @@ export default class Probe extends Component
 
 		// отрисовка хвоста как набора линий с разной прозрачностью
 		let group = new THREE.Group();
+		// for (let i = 1; i < this.tailPoints.length; i++) {
+		//
+		// 	let start = this.tailPoints[i - 1];
+		// 	let end = this.tailPoints[i];
+		//
+		// 	let dir = new THREE.Vector3().subVectors(end, start);
+		// 	let length = dir.length();
+		//
+		// 	let geometry = new THREE.CylinderGeometry(0.004, 0.004, length, 8); // 0.01 — радиус (толщину можешь увеличить)
+		//
+		// 	let opacity = i / this.tailPoints.length;
+		//
+		// 	let material = new THREE.MeshBasicMaterial({
+		// 		color: 0xffffff,
+		// 		transparent: true,
+		// 		opacity: opacity
+		// 	});
+		//
+		// 	let cylinder = new THREE.Mesh(geometry, material);
+		//
+		// 	// Позиция и ориентация
+		// 	cylinder.position.copy(start).add(end).multiplyScalar(0.5);
+		// 	cylinder.quaternion.setFromUnitVectors(
+		// 		new THREE.Vector3(0, 1, 0),
+		// 		dir.clone().normalize()
+		// 	);
+		//
+		// 	group.add(cylinder);
+		// }
 		for (let i = 1; i < this.tailPoints.length; i++) {
 
-			let start = this.tailPoints[i - 1];
-			let end = this.tailPoints[i];
-
-			let dir = new THREE.Vector3().subVectors(end, start);
-			let length = dir.length();
-
-			let geometry = new THREE.CylinderGeometry(0.004, 0.004, length, 8); // 0.01 — радиус (толщину можешь увеличить)
+			let geometry = new THREE.BufferGeometry().setFromPoints([
+				this.tailPoints[i - 1],
+				this.tailPoints[i],
+			]);
 
 			let opacity = i / this.tailPoints.length;
 
-			let material = new THREE.MeshBasicMaterial({
+			let material = new THREE.LineBasicMaterial({
 				color: 0xffffff,
 				transparent: true,
-				opacity: opacity
+				opacity: opacity,
 			});
 
-			let cylinder = new THREE.Mesh(geometry, material);
+			let segment = new THREE.Line(geometry, material);
 
-			// Позиция и ориентация
-			cylinder.position.copy(start).add(end).multiplyScalar(0.5);
-			cylinder.quaternion.setFromUnitVectors(
-				new THREE.Vector3(0, 1, 0),
-				dir.clone().normalize()
-			);
-
-			group.add(cylinder);
+			group.add(segment);
 		}
 
 		this.tail = group;

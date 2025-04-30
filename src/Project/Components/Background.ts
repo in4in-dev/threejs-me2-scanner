@@ -4,6 +4,7 @@ import Component from "../Core/Component";
 import Random from "../../Three/Random";
 import GeometryGenerator from "../../Three/GeometryGenerator";
 import {Vector2, Vector3} from "three";
+import Sound from "../../Three/Sound";
 
 export default class Background extends Component
 {
@@ -12,13 +13,21 @@ export default class Background extends Component
 	protected points : THREE.Points;
 	protected sprites : THREE.Sprite[];
 
-	constructor(picture : string, opacity : number = 0.3) {
+	protected music : Sound;
+
+	constructor(picture : string, opacity : number = 0.3, audioContext : AudioContext) {
 
 		super();
 
 		this.mesh = this.createBody(picture, opacity);
 		this.points = this.createPoints(1000);
 		this.sprites = this.createSprites();
+
+		this.music = new Sound(audioContext);
+		this.music
+			.setLoop(true)
+			.setVolume(0.8)
+			.loadFromFile('/assets/music/background.wav', true);
 
 		//Добавляем на сцену
 		this.add(this.mesh, this.points, ...this.sprites);
