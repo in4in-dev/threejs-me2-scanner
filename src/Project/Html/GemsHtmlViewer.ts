@@ -1,5 +1,4 @@
 import HtmlComponent from "../Core/HtmlComponent";
-import Engine from "../Core/Engine";
 import {Animation} from "../../Three/Animation";
 
 class GemHtmlViewer extends HtmlComponent

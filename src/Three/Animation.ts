@@ -9,8 +9,32 @@ interface AnimationLoop{
 	stop() : void
 }
 
+interface AnimationProgress{
+	get() : number,
+	restart() : AnimationProgress
+}
+
 class Animation
 {
+
+	public static createProgress(ms : number) : AnimationProgress
+	{
+
+		let time = Date.now();
+
+		return {
+			get(){
+				return Math.min(1, (Date.now() - time) / ms);
+			},
+			restart() : AnimationProgress
+			{
+				time = Date.now();
+
+				return this;
+			}
+		}
+
+	}
 
 	public static loop(n : number, callback : (...args : any[]) => any)
 	{
@@ -69,4 +93,4 @@ class Animation
 }
 
 export {Animation};
-export type { AnimationThrottler, AnimationLoop };
+export type { AnimationThrottler, AnimationLoop, AnimationProgress };

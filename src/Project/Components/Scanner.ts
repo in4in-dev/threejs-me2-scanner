@@ -3,16 +3,16 @@ import Planet, {Gem} from "./Planet";
 import Cursor from "./Cursor";
 import Monitor from "./Monitor";
 import * as THREE from 'three';
-import {AudioContext, Camera, Vector2, Vector3} from "three";
-import {Animation, AnimationThrottler} from "../../Three/Animation";
+import {AudioContext, Vector3} from 'three';
+import {Animation, AnimationProgress, AnimationThrottler} from "../../Three/Animation";
 import Flag from "./Flag";
 import Probes from "./Probes";
-import Sound from "../../Three/Sound";
 
 interface FlagData
 {
 	flag : Flag,
-	progress : number,
+	progress : AnimationProgress,
+	animated : boolean,
 	from : Vector3,
 	to : Vector3
 }
@@ -35,8 +35,8 @@ export default class Scanner extends Component
 
 		this.planet = planet;
 		this.camera = camera;
-		this.cursor = this.createCursor();
 		this.probes = new Probes(camera, audioContext);
+		this.cursor = this.createCursor();
 		this.monitor = this.createMonitor(audioContext);
 
 		this.planet.add(this.cursor);
@@ -62,12 +62,12 @@ export default class Scanner extends Component
 		let monitor = new Monitor(audioContext);
 
 		monitor.position.set(2, 0, 0);
-		// monitor.rotation.set(0.5, -0.5, 0.25);
 
 		return monitor;
 	}
 
-	protected spawnFlag(point : Vector3){
+	protected spawnFlag(point : Vector3) : void
+	{
 
 		let flag = new Flag();
 
@@ -85,33 +85,9 @@ export default class Scanner extends Component
 			flag,
 			from : flag.position.clone(),
 			to : this.cursor.position.clone(),
-			progress : 0
+			progress : Animation.createProgress(500),
+			animated : false
 		});
-
-	}
-
-	public launchProbe(cb : () => void, destroyCb: () => void) : void
-	{
-		let position = new Vector3();
-
-		this.cursor.getWorldPosition(position);
-
-		this.probes.launch(position, cb, destroyCb);
-	}
-
-	public mine() : Gem[]
-	{
-
-		this.spawnFlag(
-			this.cursor.position.clone()
-		);
-
-		this.cursor.blick();
-
-		return this.planet.mineGems(
-			this.cursor.position.clone(),
-			this.cursor.radius
-		);
 
 	}
 
@@ -138,6 +114,29 @@ export default class Scanner extends Component
 		let side = Math.sign(cross.dot(this.camera.up));
 
 		return side > 0 ? angle : -angle;
+
+	}
+
+	public launchProbe(cb : () => void, destroyCb: () => void) : void
+	{
+		let position = new Vector3();
+
+		this.cursor.getWorldPosition(position);
+
+		this.probes.launch(this.planet, position, cb, destroyCb);
+	}
+
+	public mine() : Gem[]
+	{
+
+		this.spawnFlag(
+			this.cursor.position.clone()
+		);
+
+		return this.planet.mineGems(
+			this.cursor.position.clone(),
+			this.cursor.radius
+		);
 
 	}
 
@@ -213,9 +212,14 @@ export default class Scanner extends Component
 
 		this.flags.forEach(flag => {
 
-			if(flag.progress < 1) {
-				flag.progress += 0.01;
-				flag.flag.position.lerpVectors(flag.from, flag.to, flag.progress);
+			if(!flag.animated){
+
+				flag.flag.position.lerpVectors(flag.from, flag.to, flag.progress.get());
+
+				if(flag.progress.get() >= 1){
+					flag.animated = true;
+				}
+
 			}
 
 			flag.flag.animate();
@@ -227,7 +231,5 @@ export default class Scanner extends Component
 		this.cursor.animate();
 
 	}
-
-
 
 }

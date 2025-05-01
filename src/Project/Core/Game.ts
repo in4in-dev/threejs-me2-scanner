@@ -1,6 +1,5 @@
 import Engine from "./Engine";
 import * as THREE from "three";
-import Sun from "../Components/Sun";
 import Background from "../Components/Background";
 import Random from "../../Three/Random";
 import FpsHtmlViewer from "../Html/FpsHtmlViewer";

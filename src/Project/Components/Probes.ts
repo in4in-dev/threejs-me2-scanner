@@ -1,8 +1,9 @@
 import Component from "../Core/Component";
+import * as THREE from "three";
 import {Vector3} from "three";
 import Probe from "./Probe";
-import * as THREE from 'three';
 import Sound from "../../Three/Sound";
+import Planet from "./Planet";
 
 export default class Probes extends Component
 {
@@ -26,7 +27,12 @@ export default class Probes extends Component
 		this.soundProbeLaunch.loadFromFile('/assets/music/launch.wav');
 	}
 
-	public launch(to : Vector3, landedCallback : () => void, destroyedCallback : () => void = () => {}){
+	public launch(
+		planet : Planet,
+		to : Vector3,
+		landedCallback : () => void = () => {},
+		destroyedCallback : () => void = () => {}
+	){
 
 		let offset = new THREE.Vector3(
 			(Math.random() > 0.5 ? 1 : -1) * 1.5,
@@ -36,13 +42,16 @@ export default class Probes extends Component
 
 		let from = this.camera.localToWorld(offset);
 
-		let probe = new Probe(from, to, () => {
+		let probe = new Probe(planet, from, to);
+
+		probe.setDestroyedCallback(destroyedCallback);
+		probe.setLandedCallback(() => {
 
 			this.soundProbeLanded.start();
 
 			landedCallback();
 
-		}, destroyedCallback);
+		});
 
 		this.probes.push(probe);
 

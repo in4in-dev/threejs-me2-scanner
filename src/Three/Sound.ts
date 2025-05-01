@@ -14,6 +14,11 @@ export default class Sound {
 		this.gain = context.createGain();
 	}
 
+	public static create(context : AudioContext) : Sound
+	{
+		return new Sound(context);
+	}
+
 	public loadFromBuffer(audioBuffer: AudioBuffer) : this
 	{
 		this.buffer = audioBuffer;
@@ -21,20 +26,21 @@ export default class Sound {
 		return this;
 	}
 
-	public async loadFromFile(src : string, startAfterLoad : boolean = false) : Promise<this>
+	public loadFromFile(src : string, startAfterLoad : boolean = false) : this
 	{
 
-		let file = await fetch(src);
+		fetch(src)
+			.then(file => file.arrayBuffer())
+			.then(buffer => this.context.decodeAudioData(buffer))
+			.then(audioData => {
 
-		let buffer = await this.context.decodeAudioData(
-			await file.arrayBuffer()
-		);
+				this.loadFromBuffer(audioData);
 
-		this.loadFromBuffer(buffer);
+				if(startAfterLoad){
+					this.start();
+				}
 
-		if(startAfterLoad){
-			this.start();
-		}
+			});
 
 		return this;
 

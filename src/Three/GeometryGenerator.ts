@@ -1,6 +1,6 @@
 import * as THREE from "three";
-import Random from "./Random";
 import {BufferGeometry, Curve, Vector3} from "three";
+import Random from "./Random";
 
 export default class GeometryGenerator
 {

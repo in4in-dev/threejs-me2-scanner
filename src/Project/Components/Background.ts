@@ -3,8 +3,8 @@ import MeshBasicTextureMaterial from "../../Three/MeshBasicTextureMaterial";
 import Component from "../Core/Component";
 import Random from "../../Three/Random";
 import GeometryGenerator from "../../Three/GeometryGenerator";
-import {Vector2, Vector3} from "three";
 import Sound from "../../Three/Sound";
+import {Animation, AnimationThrottler} from "../../Three/Animation";
 
 export default class Background extends Component
 {
@@ -15,7 +15,9 @@ export default class Background extends Component
 
 	protected music : Sound;
 
-	constructor(picture : string, opacity : number = 0.3, audioContext : AudioContext) {
+	protected rotateThrottler : AnimationThrottler = Animation.createThrottler(2);
+
+	public constructor(picture : string, opacity : number = 0.3, audioContext : AudioContext) {
 
 		super();
 
@@ -23,17 +25,16 @@ export default class Background extends Component
 		this.points = this.createPoints(1000);
 		this.sprites = this.createSprites();
 
-		this.music = new Sound(audioContext);
-		this.music
+		this.music = Sound
+			.create(audioContext)
+			.loadFromFile('/assets/music/background.wav', true)
 			.setLoop(true)
-			.setVolume(0.8)
-			.loadFromFile('/assets/music/background.wav', true);
+			.setVolume(0.8);
 
 		//Добавляем на сцену
 		this.add(this.mesh, this.points, ...this.sprites);
 
 	}
-
 
 	private createSmoke(path : string, color : any | null = null, opacity : number = 1) : THREE.Sprite
 	{
@@ -100,7 +101,7 @@ export default class Background extends Component
 	private createBody(picture : string, opacity : number) : THREE.Mesh
 	{
 
-		let spaceBackground = new THREE.Mesh(
+		return new THREE.Mesh(
 			new THREE.SphereGeometry(10, 14, 14),
 			new MeshBasicTextureMaterial(
 				new THREE.TextureLoader().load(picture),
@@ -109,15 +110,13 @@ export default class Background extends Component
 			)
 		);
 
-		// spaceBackground.rotation.set(3000, 300, 300);
-
-		return spaceBackground;
-
 	}
 
 	public animate(){
 
-		this.points.rotation.y += 0.001;
+		this.rotateThrottler(() => {
+			this.points.rotation.y += 0.001;
+		});
 
 	}
 

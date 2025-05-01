@@ -22,7 +22,7 @@ export default class Planet extends Component
 
 	protected mesh : THREE.Mesh;
 
-	constructor(
+	public constructor(
 		radius : number,
 		texture : string,
 		gemsCount : number
@@ -42,24 +42,24 @@ export default class Planet extends Component
 	private generateGem() : Gem
 	{
 
-			let u = Math.random();
-			let v = Math.random();
-			let theta = 2 * Math.PI * u;
-			let phi = Math.acos(2 * v - 1);
+		let u = Math.random();
+		let v = Math.random();
+		let theta = 2 * Math.PI * u;
+		let phi = Math.acos(2 * v - 1);
 
-			let x = this.radius * Math.sin(phi) * Math.cos(theta);
-			let y = this.radius * Math.sin(phi) * Math.sin(theta);
-			let z = this.radius * Math.cos(phi);
+		let x = this.radius * Math.sin(phi) * Math.cos(theta);
+		let y = this.radius * Math.sin(phi) * Math.sin(theta);
+		let z = this.radius * Math.cos(phi);
 
-			return {
-				position : new THREE.Vector3(x, y, z),
-				value : {
-					platinum : Random.int(0, 1) ? Math.random() : 0,
-					iridium : Random.int(0, 1) ? Math.random() : 0,
-					palladium : Random.int(0, 1) ? Math.random() : 0,
-					zero : Random.int(0, 1) ? Math.random() : 0
-				}
+		return {
+			position : new THREE.Vector3(x, y, z),
+			value : {
+				platinum : Random.int(0, 1) ? Math.random() : 0,
+				iridium : Random.int(0, 1) ? Math.random() : 0,
+				palladium : Random.int(0, 1) ? Math.random() : 0,
+				zero : Random.int(0, 1) ? Math.random() : 0
 			}
+		}
 
 	}
 

@@ -1,8 +1,9 @@
 import Component from "../Core/Component";
 import * as THREE from 'three';
+import {AudioContext, LineBasicMaterial, Vector3} from 'three';
 import {Gem} from "./Planet";
-import {AudioContext, LineBasicMaterial, Vector3} from "three";
 import Sound from "../../Three/Sound";
+import {Animation, AnimationThrottler} from "../../Three/Animation";
 
 interface MonitorLine
 {
@@ -32,6 +33,8 @@ export default class Monitor extends Component
 	protected soundPalladium : Sound;
 	protected soundZero : Sound;
 
+	protected animationThrottler : AnimationThrottler = Animation.createThrottler(10);
+
 	public constructor(audioContext : AudioContext) {
 
 		super();
@@ -41,26 +44,26 @@ export default class Monitor extends Component
 
 		this.add(this.body, this.background);
 
-		this.soundIridium = new Sound(audioContext);
-		this.soundIridium
+		this.soundIridium = Sound
+			.create(audioContext)
 			.setLoop(true)
 			.setVolume(0)
 			.loadFromFile('/assets/music/iridium.wav', true);
 
-		this.soundPlatinum = new Sound(audioContext);
-		this.soundPlatinum
+		this.soundPlatinum = Sound
+			.create(audioContext)
 			.setLoop(true)
 			.setVolume(0)
 			.loadFromFile('/assets/music/platinum.wav', true);
 
-		this.soundPalladium = new Sound(audioContext);
-		this.soundPalladium
+		this.soundPalladium = Sound
+			.create(audioContext)
 			.setLoop(true)
 			.setVolume(0)
 			.loadFromFile('/assets/music/palladium.wav', true);
 
-		this.soundZero = new Sound(audioContext);
-		this.soundZero
+		this.soundZero = Sound
+			.create(audioContext)
 			.setLoop(true)
 			.setVolume(0)
 			.loadFromFile('/assets/music/zero-element.wav', true);
@@ -77,41 +80,41 @@ export default class Monitor extends Component
 		return group;
 	}
 
+	private createBackgroundLine(start : Vector3, end : Vector3) : THREE.Mesh
+	{
+
+		let dir = new THREE.Vector3().subVectors(end, start);
+		let length = dir.length();
+		let angle = Math.atan2(dir.y, dir.x);
+
+		let geometry = new THREE.PlaneGeometry(length, 0.005);
+		let material = new THREE.MeshBasicMaterial({
+			color: 0x00ff00,
+			side: THREE.DoubleSide,
+			opacity : 0.3,
+			transparent : true,
+		});
+		let rect = new THREE.Mesh(geometry, material);
+
+		rect.position.copy(start).add(dir.clone().multiplyScalar(0.5));
+		rect.rotation.z = angle;
+
+		return rect;
+
+	}
 
 	private createBackground() : THREE.Group
 	{
 
 		let background = new THREE.Group();
 
-		function createLine(start : Vector3, end : Vector3){
-
-			let dir = new THREE.Vector3().subVectors(end, start);
-			let length = dir.length();
-			let angle = Math.atan2(dir.y, dir.x);
-
-			let geometry = new THREE.PlaneGeometry(length, 0.005);
-			let material = new THREE.MeshBasicMaterial({
-				color: 0x00ff00,
-				side: THREE.DoubleSide,
-				opacity : 0.3,
-				transparent : true,
-			});
-			let rect = new THREE.Mesh(geometry, material);
-
-			rect.position.copy(start).add(dir.clone().multiplyScalar(0.5));
-			rect.rotation.z = angle;
-
-			return rect;
-
-		}
-
 		for(let i = 0; i < 1; i+=0.2){
 			background.add(
-				createLine(
+				this.createBackgroundLine(
 					new Vector3(i, 0, 0),
 					new Vector3(i, 1.2, 0),
 				),
-				createLine(
+				this.createBackgroundLine(
 					new Vector3(i + 0.15, 0, 0),
 					new Vector3(i + 0.15, 1.2, 0),
 				)
@@ -120,7 +123,7 @@ export default class Monitor extends Component
 			for(let b = 0; b < 1.3; b+=0.15){
 
 				background.add(
-					createLine(
+					this.createBackgroundLine(
 						new Vector3(i, b, 0),
 						new Vector3(i + 0.15, b, 0),
 					)
@@ -272,59 +275,63 @@ export default class Monitor extends Component
 
 	public animate(gems : Gem[]){
 
-		let values = this.gemsToValues(gems);
+		this.animationThrottler(() => {
 
-		this.soundZero.setVolume(
-			Math.min(values.zero / 2, 1)
-		);
+			let values = this.gemsToValues(gems);
 
-		this.soundPalladium.setVolume(
-			Math.min(values.palladium / 2, 1)
-		);
+			this.soundZero.setVolume(
+				Math.min(values.zero / 2, 1)
+			);
 
-		this.soundIridium.setVolume(
-			Math.min(values.iridium / 2, 1)
-		);
+			this.soundPalladium.setVolume(
+				Math.min(values.palladium / 2, 1)
+			);
 
-		this.soundPlatinum.setVolume(
-			Math.min(values.platinum / 2, 1)
-		);
+			this.soundIridium.setVolume(
+				Math.min(values.iridium / 2, 1)
+			);
 
-		let points = this.optimizeChartPoints(
-			this.generateChartPoints(values)
-		);
+			this.soundPlatinum.setVolume(
+				Math.min(values.platinum / 2, 1)
+			);
 
-		this.lastChartPoints = points;
+			let points = this.optimizeChartPoints(
+				this.generateChartPoints(values)
+			);
 
-		this.lines.forEach((monitorLine, i) => {
+			this.lastChartPoints = points;
 
-			monitorLine.line.position.z -= 0.02;
-			monitorLine.line.position.y += 0.02;
-			(<LineBasicMaterial>monitorLine.line.material).transparent = true;
-			(<LineBasicMaterial>monitorLine.line.material).opacity = 0.8 - (0.05 * (this.lines.length - i));
-			(<LineBasicMaterial>monitorLine.line.material).needsUpdate = true;
+			this.lines.forEach((monitorLine, i) => {
+
+				monitorLine.line.position.z -= 0.02;
+				monitorLine.line.position.y += 0.02;
+				(<LineBasicMaterial>monitorLine.line.material).transparent = true;
+				(<LineBasicMaterial>monitorLine.line.material).opacity = 0.8 - (0.05 * (this.lines.length - i));
+				(<LineBasicMaterial>monitorLine.line.material).needsUpdate = true;
+
+			});
+
+			if(this.lines.length){
+				let lastLine = this.lines[this.lines.length - 1];
+
+				lastLine.colorAttribute.copyArray(lastLine.colors);
+				lastLine.colorAttribute.needsUpdate = true;
+			}
+
+			let newLine = this.createMonitorLine(points);
+
+			this.lines.push(newLine);
+			this.body.add(newLine.line);
+
+			if(this.lines.length > 20){
+
+				let firstLine = this.lines.shift();
+
+				this.body.remove(firstLine!.line);
+
+			}
 
 		});
-
-		if(this.lines.length){
-			let lastLine = this.lines[this.lines.length - 1];
-
-			lastLine.colorAttribute.copyArray(lastLine.colors);
-			lastLine.colorAttribute.needsUpdate = true;
-		}
-
-		let newLine = this.createMonitorLine(points);
-
-		this.lines.push(newLine);
-		this.body.add(newLine.line);
-
-		if(this.lines.length > 20){
-
-			let firstLine = this.lines.shift();
-
-			this.body.remove(firstLine!.line);
-
-		}
 
 
 	}

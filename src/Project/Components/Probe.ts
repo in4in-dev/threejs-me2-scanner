@@ -1,6 +1,11 @@
 import Component from "../Core/Component";
+import * as THREE from "three";
 import {Vector3} from "three";
-import * as THREE from 'three';
+import Planet from "./Planet";
+import {Animation, AnimationProgress} from "../../Three/Animation";
+
+type LandedCallback = () => void;
+type DestroyedCallback = () => void;
 
 export default class Probe extends Component
 {
@@ -8,39 +13,71 @@ export default class Probe extends Component
 	public animationCompleted : boolean = false;
 	public landed : boolean = false;
 
-	protected progress : number = 0;
+	protected from : Vector3;
+	protected to : Vector3;
+
 	protected curve : THREE.QuadraticBezierCurve3;
 	protected tailLength : number = 120;
 	protected tailPoints : THREE.Vector3[] = [];
 
+	protected progress : AnimationProgress = Animation.createProgress(2500);
+
+	protected planet : Planet;
 	protected mesh : THREE.Mesh;
 	protected tail : THREE.Group | null = null;
 
-	protected landedCallback : () => void;
-	protected destroyedCallback : () => void;
+	protected landedCallback : LandedCallback | null = null;
+	protected destroyedCallback : DestroyedCallback | null = null;
 
-	public constructor(from : Vector3, to : Vector3, landedCallback : () => void, destroyedCallback : () => void = () => {}){
+	public constructor(
+		planet : Planet,
+		from : Vector3,
+		to : Vector3
+	){
 
 		super();
 
-		// let mid = from.clone().lerp(to, 0.5);
-		// mid.y += 2;
+		this.planet = planet;
+		this.from = from;
+		this.to = to;
 
-		let toNormal = to.clone().normalize();
-		let mid = to.clone().add(toNormal.clone().multiplyScalar(1 * 0.5));
-
-		this.curve = new THREE.QuadraticBezierCurve3(from, mid, to);
-
-		this.mesh = new THREE.Mesh(
-			new THREE.SphereGeometry(0.005, 8, 8),
-			new THREE.MeshBasicMaterial({ color: 0xffffff })
-		);
-
-		this.landedCallback = landedCallback;
-		this.destroyedCallback = destroyedCallback;
+		this.curve = this.createCurve();
+		this.mesh = this.createBody();
 
 		this.add(this.mesh);
 
+	}
+
+	public setLandedCallback(callback : LandedCallback) : this
+	{
+		this.landedCallback = callback;
+
+		return this;
+	}
+
+	public setDestroyedCallback(callback : DestroyedCallback) : this
+	{
+		this.destroyedCallback = callback;
+
+		return this;
+	}
+
+	private createCurve() : THREE.QuadraticBezierCurve3
+	{
+
+		let toNormal = this.to.clone().normalize();
+		let mid = this.to.clone().add(toNormal.clone().multiplyScalar(this.planet.radius * 0.5));
+
+		return new THREE.QuadraticBezierCurve3(this.from, mid, this.to);
+
+	}
+
+	private createBody() : THREE.Mesh
+	{
+		return new THREE.Mesh(
+			new THREE.SphereGeometry(0.005, 8, 8),
+			new THREE.MeshBasicMaterial({ color: 0xffffff })
+		);
 	}
 
 	public animate(){
@@ -49,31 +86,25 @@ export default class Probe extends Component
 			return;
 		}
 
+		let progress = this.progress.get();
+
 		if (!this.landed){
 
-			// движение по кривой
-			if(this.progress >= 0.85){
-				this.progress += 0.0015;
-			}else{
-				this.progress += 0.003;
-			}
+			let pos = this.curve.getPoint(progress);
 
-			if (this.progress >= 1) {
-				this.progress = 1;
+			this.mesh.position.copy(pos);
+
+			this.tailPoints.push(
+				pos.clone()
+			);
+
+			if (progress >= 1) {
+
 				this.landed = true;
 
 				this.remove(this.mesh);
 
-				this.landedCallback();
-
-			}else{
-
-				let pos = this.curve.getPoint(this.progress);
-				this.mesh.position.copy(pos);
-
-				this.tailPoints.push(
-					pos.clone()
-				);
+				this.landedCallback && this.landedCallback();
 
 			}
 
@@ -85,7 +116,7 @@ export default class Probe extends Component
 
 			if(this.tailPoints.length < 1 && this.landed){
 				this.animationCompleted = true;
-				this.destroyedCallback();
+				this.destroyedCallback && this.destroyedCallback();
 			}
 		}
 
@@ -96,35 +127,7 @@ export default class Probe extends Component
 
 		// отрисовка хвоста как набора линий с разной прозрачностью
 		let group = new THREE.Group();
-		// for (let i = 1; i < this.tailPoints.length; i++) {
-		//
-		// 	let start = this.tailPoints[i - 1];
-		// 	let end = this.tailPoints[i];
-		//
-		// 	let dir = new THREE.Vector3().subVectors(end, start);
-		// 	let length = dir.length();
-		//
-		// 	let geometry = new THREE.CylinderGeometry(0.004, 0.004, length, 8); // 0.01 — радиус (толщину можешь увеличить)
-		//
-		// 	let opacity = i / this.tailPoints.length;
-		//
-		// 	let material = new THREE.MeshBasicMaterial({
-		// 		color: 0xffffff,
-		// 		transparent: true,
-		// 		opacity: opacity
-		// 	});
-		//
-		// 	let cylinder = new THREE.Mesh(geometry, material);
-		//
-		// 	// Позиция и ориентация
-		// 	cylinder.position.copy(start).add(end).multiplyScalar(0.5);
-		// 	cylinder.quaternion.setFromUnitVectors(
-		// 		new THREE.Vector3(0, 1, 0),
-		// 		dir.clone().normalize()
-		// 	);
-		//
-		// 	group.add(cylinder);
-		// }
+
 		for (let i = 1; i < this.tailPoints.length; i++) {
 
 			let geometry = new THREE.BufferGeometry().setFromPoints([
