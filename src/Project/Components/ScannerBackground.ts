@@ -6,7 +6,7 @@ import GeometryGenerator from "../../Three/GeometryGenerator";
 import Sound from "../../Three/Sound";
 import {Animation, AnimationThrottler} from "../../Three/Animation";
 
-export default class Background extends Component
+export default class ScannerBackground extends Component
 {
 
 	protected mesh : THREE.Mesh;
@@ -70,9 +70,9 @@ export default class Background extends Component
 	{
 
 		return [
-			this.createSmoke('../../assets/smokes/1.png', '#d98911', 0.8),
-			this.createSmoke('../../assets/smokes/1.png', '#887272', 0.8),
-			this.createSmoke('../../assets/smokes/3.png', 'white', 0.2)
+			this.createSmoke('/assets/smokes/1.png', '#d98911', 0.8),
+			this.createSmoke('/assets/smokes/1.png', '#887272', 0.8),
+			this.createSmoke('/assets/smokes/3.png', 'white', 0.2)
 		]
 
 	}
@@ -84,7 +84,7 @@ export default class Background extends Component
 			GeometryGenerator.filledSphere(6, count),
 
 			new THREE.PointsMaterial({
-				map: new THREE.TextureLoader().load('../../assets/sand.png'),
+				map: new THREE.TextureLoader().load('/assets/sand.png'),
 				size: 0.01,
 				blending: THREE.AdditiveBlending,
 				depthTest: false,

@@ -102,6 +102,11 @@ export default class Planet extends Component
 		return this.mesh;
 	}
 
+	public setActive(active : boolean) : void
+	{
+
+	}
+
 	private createBody() : THREE.Mesh
 	{
 

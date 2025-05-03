@@ -7,38 +7,33 @@ import ModelLoader from "../../Three/ModelLoader";
 import {Animation, AnimationThrottler} from "../../Three/Animation";
 //@ts-ignore
 import {CSS3DRenderer} from "three/examples/jsm/renderers/CSS3DRenderer";
-
+import Scene from "./Scene";
 
 export default abstract class Engine
 {
 
-	public camera : THREE.Camera;
-	public scene : THREE.Scene;
+	public scene : Scene | null = null;
 
-	public webGLRenderer : WebGLRenderer;
-	public css2DRenderer : CSS2DRenderer;
-	public css3DRenderer : CSS3DRenderer;
-
-	protected active : boolean = false;
-	protected renderAsync : boolean = false;
-
-	protected width : number;
-	protected height : number;
+	public width : number;
+	public height : number;
 
 	public fps : number = 0;
 	public fpsRender : number = 0;
 
+	protected webGLRenderer : WebGLRenderer;
+	protected css2DRenderer : CSS2DRenderer;
+	protected css3DRenderer : CSS3DRenderer;
+
+	protected active : boolean = false;
+	protected renderAsync : boolean = false;
+
 	protected slowTickThrottler : AnimationThrottler = Animation.createThrottler(50);
 
-	constructor(element : HTMLElement) {
+	public constructor(element : HTMLElement) {
 
-
-		let scene = new THREE.Scene();
 
 		this.width = window.innerWidth;
 		this.height = window.innerHeight;
-
-		let camera = new THREE.PerspectiveCamera(60, this.width / this.height, 0.1, 1000);
 
 		let renderer = new THREE.WebGLRenderer();
 		renderer.setSize(this.width, this.height);
@@ -57,31 +52,37 @@ export default abstract class Engine
 		css3DRenderer.domElement.style.top = '0px';
 		element.appendChild(css3DRenderer.domElement);
 
-		this.camera = camera;
-		this.scene = scene;
 		this.webGLRenderer = renderer;
 		this.css3DRenderer = css3DRenderer;
 		this.css2DRenderer = css2DRenderer;
 
 	}
 
-	protected abstract tick() : void;
+	private render() : void
+	{
 
-	protected afterTick(){
+		if(this.scene){
+			this.webGLRenderer.render(this.scene.scene, this.scene.camera);
+			this.css2DRenderer.render(this.scene.scene, this.scene.camera);
+			this.css3DRenderer.render(this.scene.scene, this.scene.camera);
+		}
+
+	}
+
+	public setScene(scene : Scene) : void
+	{
+
+		if(this.scene){
+			this.scene.destroy();
+		}
+
+		scene.init();
+
+		this.scene = scene;
+
 
 	}
 
-	protected slowTick(){
-
-	}
-
-	private render(){
-
-		this.webGLRenderer.render(this.scene, this.camera);
-		this.css2DRenderer.render(this.scene, this.camera);
-		this.css3DRenderer.render(this.scene, this.camera);
-
-	}
 
 	public stop(){
 		this.active = false;
@@ -97,9 +98,11 @@ export default abstract class Engine
 				ModelLoader.runBackgroundTasks();
 			}
 
-			this.tick();
-			this.slowTickThrottler(() => this.slowTick());
-			this.afterTick();
+			if(this.scene){
+				this.scene.tick();
+				this.slowTickThrottler(() => this.scene!.slowTick());
+				this.scene.afterTick();
+			}
 
 			this.fps = Math.min(99999, Math.ceil(1 / ((Date.now() - startTime) / 1000)));
 

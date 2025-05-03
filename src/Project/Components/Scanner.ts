@@ -197,6 +197,13 @@ export default class Scanner extends Component
 
 	}
 
+	public setPlanet(planet : Planet) : void
+	{
+		this.remove(this.planet);
+		this.planet = planet;
+		this.add(this.planet);
+	}
+
 	public animate(){
 
 		this.monitorThrottler(() => {

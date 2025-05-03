@@ -41,7 +41,7 @@ export default class Flag extends Component
 	private createBody() : THREE.Object3D
 	{
 
-		let flag = new ModelLoader('../../assets/models/flag3/present_76_fan_low.fbx').loadInBackground();
+		let flag = new ModelLoader('/assets/models/flag3/present_76_fan_low.fbx').loadInBackground();
 
 		flag.scale.set(0.00004,0.00004,0.00004);
 		flag.rotation.set(0, Math.PI / 2, 0);

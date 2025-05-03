@@ -25,6 +25,8 @@ export default class Cursor extends Component{
 
 		this.mesh.add(this.radar);
 
+		this.scale.set(radius, radius, radius);
+
 		this.add(this.mesh);
 
 	}
