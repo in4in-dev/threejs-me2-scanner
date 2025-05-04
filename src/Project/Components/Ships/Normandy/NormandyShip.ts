@@ -43,7 +43,7 @@ export class NormandyShip extends Ship
 
 		let ship = new ModelLoader(
 			'/assets/mobs/normandy/normandy.obj',
-			'..//assets/mobs/normandy/normandy.mtl'
+			'/assets/mobs/normandy/normandy.mtl'
 		).loadInBackground();
 
 		ship.scale.set(0.15, 0.15, 0.15);

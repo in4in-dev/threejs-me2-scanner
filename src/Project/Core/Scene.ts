@@ -35,12 +35,6 @@ export default abstract class Scene extends EventBus
 		this.fpsIndicator = new FpsHtmlViewer(engine);
 		this.techInfoIndicator = new TechInfoHtmlViewer();
 
-		if(this.showAxis){
-			this.scene.add(
-				new THREE.AxesHelper(20)
-			);
-		}
-
 	}
 
 	protected analyzeWrap(code : string, fn : () => void, max : number = 10) : void
@@ -126,6 +120,12 @@ export default abstract class Scene extends EventBus
 	{
 
 		this.beforeInit();
+
+		if(this.showAxis){
+			this.scene.add(
+				new THREE.AxesHelper(20)
+			);
+		}
 
 		let destroyListenersFunction = this.setListeners();
 		let destroyHtmlFunction = this.setHtml();

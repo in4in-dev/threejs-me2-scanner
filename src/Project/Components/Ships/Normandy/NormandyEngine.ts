@@ -88,7 +88,7 @@ export default class NormandyEngine extends Component
 
 		let glowSprite = new THREE.Sprite(
 			new THREE.SpriteMaterial({
-				map: new THREE.TextureLoader().load('..//assets/glow.png'),
+				map: new THREE.TextureLoader().load('/assets/glow.png'),
 				color: color,
 				transparent: true,
 				blending: THREE.AdditiveBlending,
@@ -109,7 +109,7 @@ export default class NormandyEngine extends Component
 			this.getGeometry(),
 			new THREE.PointsMaterial({
 				// color: color,
-				map : new THREE.TextureLoader().load('..//assets/glow.png'),
+				map : new THREE.TextureLoader().load('/assets/glow.png'),
 				size: 0.1,
 				blending: THREE.AdditiveBlending,
 				depthTest: false,

@@ -35,7 +35,7 @@ export default abstract class Engine
 		this.width = window.innerWidth;
 		this.height = window.innerHeight;
 
-		let renderer = new THREE.WebGLRenderer();
+		let renderer = new THREE.WebGLRenderer({ antialias: true });
 		renderer.setSize(this.width, this.height);
 		renderer.setPixelRatio(window.devicePixelRatio);
 		element.appendChild(renderer.domElement);

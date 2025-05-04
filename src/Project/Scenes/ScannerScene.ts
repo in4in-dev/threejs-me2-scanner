@@ -215,6 +215,8 @@ export default class ScannerScene extends Scene
 	public slowTick() : void
 	{
 
+		super.slowTick();
+
 		this.analyzeWrap('HTML_GEMS', () => this.gemsIndicator.updateView());
 
 	}

@@ -11,6 +11,7 @@ import Scene from "../Core/Scene";
 import Planet from "../Components/Planet";
 import Random from "../../Three/Random";
 import Engine from "../Core/Engine";
+import BlurHtmlViewer from "../Html/BlurHtmlViewer";
 
 export default class SpaceScene extends Scene
 {
@@ -37,6 +38,9 @@ export default class SpaceScene extends Scene
 	protected asteroidBelt : AsteroidBelt;
 	protected planets : PlanetWithOrbit[] = [];
 
+	protected selectedPlanet : Planet | null = null;
+
+	protected blurBackground : BlurHtmlViewer;
 
 	constructor(engine : Engine) {
 
@@ -123,6 +127,7 @@ export default class SpaceScene extends Scene
 
 
 		this.camera = new THREE.PerspectiveCamera(75, engine.width / engine.height, 0.1, 1000);
+		this.blurBackground = new BlurHtmlViewer();
 
 		this.background = background;
 		this.sun = sun;
@@ -194,7 +199,13 @@ export default class SpaceScene extends Scene
 
 
 	protected beforeSetHtml() : () => void {
-		return () => {}
+
+		document.body.appendChild(this.blurBackground.element);
+
+		return () => {
+			this.blurBackground.element.remove();
+		}
+
 	}
 
 	/**
@@ -290,6 +301,29 @@ export default class SpaceScene extends Scene
 
 		});
 
+		this.analyzeWrap('PLANET_CAMERA_ANIMATE', () => {
+
+			if(this.selectedPlanet){
+
+				let planetPosition = new Vector3();
+				this.selectedPlanet.getWorldPosition(planetPosition);
+
+				let target = new Vector3().copy(this.camera.position).sub(planetPosition).setLength(5).add(planetPosition);
+
+				let direction = target.clone().sub(this.camera.position);
+
+				if(direction.length() > 0.01){
+
+					this.camera.position.add(
+						direction.normalize().multiplyScalar(0.1)
+					)
+
+				}
+
+			}
+
+		});
+
 		//Отображаем название активной планеты
 		this.analyzeWrap('PLANETS_ACTIVITY', () => {
 
@@ -302,6 +336,16 @@ export default class SpaceScene extends Scene
 				let planetActive = this.checkProximityToPlanet(planet, 1.5);
 
 				planet.planet.setActive(planetActive);
+
+				if(planetActive && !this.selectedPlanet){
+					this.selectedPlanet = planet.planet;
+					this.shipMovingAllow = false;
+					this.blurBackground.show();
+
+					setTimeout(() => {
+						this.emit('planet', planet.planet);
+					}, 700);
+				}
 
 			});
 
@@ -320,6 +364,8 @@ export default class SpaceScene extends Scene
 	}
 
 	public slowTick() {
+
+		super.slowTick();
 
 
 	}
